@@ -1,28 +1,29 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-
+# Inicializacion del contador
 contador = 0
-
+# Configuracion de la url 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     def _set_response(self, content_type="text/plain"):
         self.send_response(200)
         self.send_header("Content-type", content_type)
         self.end_headers()
-
+# Cuando usemos GET se muestra el valor de contador 
     def do_GET(self):
         self._set_response()
         respuesta = "El valor es: " + str(contador)
         self.wfile.write(respuesta.encode())
-
+# Cuando usemos POST se haran 2 condicones una con action y otra con quantity
     def do_POST(self):
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
-        
+        # Almacenamos la informacion del JASON en una variable llamada body_json
         body_json = json.loads(post_data.decode())
+        # Obtenemos el valor de quantity y lo almacenamos en una variable 
         quantity = body_json.get('quantity')
         
         global contador
-        
+        # Creamos la condicion con la informacion mandada por el JASON
         if(body_json['action'] == 'asc'):
             contador += quantity
         elif(body_json['action'] == 'desc'):

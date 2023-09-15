@@ -3,6 +3,7 @@ import json
 import os
 
 contador = 11
+led = False
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -19,6 +20,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     # Set the response headers
     print(self.path)
+    global led
     if self.path == "/":
       try:
         # Get the absolute path to the HTML file
@@ -33,6 +35,22 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     elif self.path == "/counter":
       self._set_response()
       self.wfile.write(json.dumps({"contador": contador}).encode())
+    
+    elif self.path == "/led":
+      self._set_response()
+      self.wfile.write(json.dumps({"status": led}).encode())
+      pass
+
+    elif self.path == "/led/on":
+      led = True
+      self._set_response()
+      self.wfile.write(json.dumps({"status": led}).encode())
+
+    elif self.path == "/led/off":
+      led = False
+      self._set_response()
+      self.wfile.write(json.dumps({"status": led}).encode())
+
     else:
       # send bad request response
       self.throw_custom_error("Invalid path")

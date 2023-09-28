@@ -2,34 +2,29 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "LAPTOP-PEDROU";
-const char *password = "12345678";
+const char *ssid = "W_Aula_WB11";
+const char *password = "itcolima6";
 
-String serverName = "http://192.168.137.1:7800/";
+// Your Domain name with URL path or IP address with path
+String serverName = "http://424e-187-190-35-202.ngrok-free.app/let";
 
-const int buttonD4 = 4; // Pin D4
-const int buttonD5 = 5; // Pin D5
-
-// the following variables are unsigned longs because the time, measured in
-// milliseconds, will quickly become a bigger number than can be stored in an int.
 unsigned long lastTime = 0;
-// Timer set to 10 minutes (600000)
-// unsigned long timerDelay = 600000;
-// Set timer to 5 seconds (5000)
 unsigned long timerDelay = 5000;
+
+int contador = 0; // Variable para el contador inicializada en 0
+
+const int botonAumentarPin = 4; // Pin del botón para aumentar el contador
+const int botonDisminuirPin = 5; // Pin del botón para disminuir el contador
 
 void post_data(String action, int quantity)
 {
-  // Objeto JSON
   DynamicJsonDocument json_chido(1024);
   json_chido["action"] = action;
   json_chido["quantity"] = quantity;
 
-  // Cadena JSON para enviar
   String json_str;
   serializeJson(json_chido, json_str);
 
-  // Enviar POST
   HTTPClient http;
   http.begin(serverName);
   http.addHeader("Content-Type", "application/json");
@@ -76,66 +71,46 @@ void setup()
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
+  // Configura los pines de los botones como entrada
+  pinMode(botonAumentarPin, INPUT);
+  pinMode(botonDisminuirPin, INPUT);
+
   Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
 }
 
 void loop()
 {
-  if (digitalRead(buttonD4)){
-    if (Serial.available())
+  // Leer el estado de los botones
+  int estadoBotonAumentar = digitalRead(botonAumentarPin);
+  int estadoBotonDisminuir = digitalRead(botonDisminuirPin);
+
+  if (estadoBotonAumentar == HIGH)
   {
-    String data = Serial.readStringUntil('\n');
-    if (data == "+")
-    {
-      post_asc();
-    }
-    else if (data == "-")
-    {
-      post_desc();
-    }
-    else
-    {
-      Serial.println("Invalid command");
-    }
+    // Incrementa el contador cuando se presiona el botón de aumentar
+    contador++;
+    post_asc(); // Envía datos al servidor
   }
-  }
-  if (digitalRead(buttonD5))
+  else if (estadoBotonDisminuir == HIGH)
   {
-    if (Serial.available())
-  {
-    String data = Serial.readStringUntil('\n');
-    if (data == "+")
-    {
-      post_asc();
-    }
-    else if (data == "-")
-    {
-      post_desc();
-    }
-    else
-    {
-      Serial.println("Invalid command");
-    }
+    // Disminuye el contador cuando se presiona el botón de disminuir
+    contador--;
+    post_desc(); // Envía datos al servidor
   }
-  }
-  
-  // Send an HTTP POST request every 10 minutes
+
+  // Muestra el valor actual del contador en el puerto serie
+  Serial.print("Contador: ");
+  Serial.println(contador);
+
   if ((millis() - lastTime) > timerDelay)
   {
-    // Check WiFi connection status
     if (WiFi.status() == WL_CONNECTED)
     {
       HTTPClient http;
 
       String serverPath = serverName;
 
-      // Your Domain name with URL path or IP address with path
       http.begin(serverPath.c_str());
 
-      // If you need Node-RED/server authentication, insert user and password below
-      // http.setAuthorization("REPLACE_WITH_SERVER_USERNAME", "REPLACE_WITH_SERVER_PASSWORD");
-
-      // Send HTTP GET request
       int httpResponseCode = http.GET();
 
       if (httpResponseCode > 0)
@@ -150,7 +125,7 @@ void loop()
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
       }
-      // Free resources
+
       http.end();
     }
     else

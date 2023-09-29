@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Página con python owo</title>
+  <title>Página con Python</title>
   <style>
     body {
       background-color: #313740;
@@ -45,7 +45,6 @@
 
     #onButton {
       background-color: #3498db;
-      /* Blue color for "ON" button */
       border: none;
       border-radius: 4px;
       color: #fff;
@@ -59,7 +58,6 @@
 
     #offButton {
       background-color: #e74c3c;
-      /* Red color for "OFF" button */
       border: none;
       border-radius: 4px;
       color: #fff;
@@ -73,12 +71,10 @@
 
     #onButton:hover {
       background-color: #2980b9;
-      /* Slightly darker blue on hover */
     }
 
     #offButton:hover {
       background-color: #c0392b;
-      /* Slightly darker red on hover */
     }
   </style>
 </head>
@@ -101,40 +97,50 @@
   <div class="sectionContainer">
     <h3>Temperatura:</h3>
     <div class="buttonContainer">
-      <h2 id="temperatureValue">## °C</h2>
+      <h2 id="temperatureValue">##</h2>
     </div>
   </div>
 </body>
 <script>
+  // Obtiene las referencias de los elementos HTML que necesitamos
   const onButton = document.getElementById("onButton");
   const offButton = document.getElementById("offButton");
   const counterDisplay = document.getElementById("counterValue"); // Elemento para el contador
   const temperatureDisplay = document.getElementById("temperatureValue"); // Elemento para la temperatura
 
+  // Agrega un evento al botón "ON" para enviar una solicitud cuando se hace clic
   onButton.addEventListener("click", () => {
-    fetch("/led/on");
+    fetch("/led/on"); // Envía una solicitud al servidor para encender el LED
   });
 
+  // Agrega un evento al botón "OFF" para enviar una solicitud cuando se hace clic
   offButton.addEventListener("click", () => {
-    fetch("/led/off");
+    fetch("/led/off"); // Envía una solicitud al servidor para apagar el LED
   });
 
+  // Función para actualizar el valor del contador en la página
   const updateCounter = () => {
-    fetch("/counter")
-      .then((response) => response.json())
+    fetch("/counter") // Realiza una solicitud al servidor para obtener el valor del contador
+      .then((response) => response.json()) // Parsea la respuesta JSON
       .then((data) => {
-        counterDisplay.innerHTML = data.contador;
+        counterDisplay.innerHTML = data.contador; // Actualiza el contador en la página
       });
   };
+
+  // Función para actualizar el valor de la temperatura en la página
   const updateTemperature = () => {
-    fetch("/temperature")
-      .then((response) => response.json())
+    fetch("/temperature") // Realiza una solicitud al servidor para obtener la temperatura
+      .then((response) => response.json()) // Parsea la respuesta JSON
       .then((data) => {
-        temperatureDisplay.innerHTML = data.temperature + " °C"; // Actualiza la temperatura
+        const temperature = data.temperature; // Obtiene el valor de la temperatura
+        temperatureDisplay.innerHTML = temperature + " °C"; // Actualiza la temperatura en la página
       });
   };
+
+  // Actualiza el contador cada 1 segundo
   setInterval(updateCounter, 1000);
-  setInterval(updateTemperature, 10000); // Actualiza la temperatura cada 10 segundos
+  // Actualiza la temperatura cada 1 segundo
+  setInterval(updateTemperature, 1000);
 </script>
 
 </html>

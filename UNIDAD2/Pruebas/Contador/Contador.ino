@@ -3,9 +3,12 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "W_Aula_WB11";
+// Definición de las credenciales de la red Wi-Fi a la que se conectará el dispositivo
+const char *ssid = "A_Escolares_Jefatura";
 const char *password = "itcolima6";
-String serverName = "http://424e-187-190-35-202.ngrok-free.app";
+
+// Dirección URL del servidor web que proporciona el estado del LED
+String serverName = "http://7a5e-187-190-35-202.ngrok-free.app";
 
 int contador = 0;  // Inicializa el contador en 0
 const int botonAumentarPin = 4;

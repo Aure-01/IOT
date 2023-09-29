@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 
-contador = 11
+contador = 0
 led = False
 temperature = 0
 

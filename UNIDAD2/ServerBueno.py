@@ -62,6 +62,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Manejo de solicitudes POST
+        global contador  # Use the global variable contador
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length)
         print(f"Received POST data: {post_data.decode()}")  # Agregar este mensaje de depuración

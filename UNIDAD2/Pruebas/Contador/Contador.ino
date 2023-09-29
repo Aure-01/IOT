@@ -14,6 +14,7 @@ int contador = 0;  // Inicializa el contador en 0
 const int botonAumentarPin = 4;
 const int botonDisminuirPin = 5;
 
+// Función para enviar datos al servidor, como la acción (asc o desc) y la cantidad
 void post_data(String action, int quantity) {
   DynamicJsonDocument json_chido(1024);
   json_chido["action"] = action;
@@ -58,17 +59,24 @@ void setup() {
 }
 
 void loop() {
+  // Lee el estado de los botones para aumentar y disminuir el contador
   int estadoBotonAumentar = digitalRead(botonAumentarPin);
   int estadoBotonDisminuir = digitalRead(botonDisminuirPin);
 
+  // Incrementa el contador si se presiona el botón de aumento
   if (estadoBotonAumentar == HIGH) {
     contador++;
+    // Envía la acción "asc" (aumentar) y la cantidad 1 al servidor
     post_data("asc", 1);
-  } else if (estadoBotonDisminuir == HIGH) {
+  }
+  // Decrementa el contador si se presiona el botón de disminución
+  else if (estadoBotonDisminuir == HIGH) {
     contador--;
+    // Envía la acción "desc" (disminuir) y la cantidad 1 al servidor
     post_data("desc", 1);
   }
 
+  // Imprime el valor del contador en el puerto serie
   Serial.print("Contador: ");
   Serial.println(contador);
 

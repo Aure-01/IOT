@@ -4,9 +4,12 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "W_Aula_WB11";
-const char *password = "itcolima6";
-String serverName = "http://424e-187-190-35-202.ngrok-free.app";
+// Definición de las credenciales de la red Wi-Fi a la que se conectará el dispositivo
+const char *ssid = "INFINITUME7D8";
+const char *password = "kasumikasumi";
+
+// Dirección URL del servidor web que almacenará la temperatura
+String serverName = "http://d4b4-189-170-22-238.ngrok-free.app ";
 
 #define DHTPIN 2
 #define DHTTYPE DHT11

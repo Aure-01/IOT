@@ -5,11 +5,11 @@
 #include <DHT.h>
 
 // Definición de las credenciales de la red Wi-Fi a la que se conectará el dispositivo
-const char *ssid = "A_Escolares_Jefatura";
+const char *ssid = "W_Aula_WB11";
 const char *password = "itcolima6";
 
 // Dirección URL del servidor web
-String serverName = "http://90d1-187-190-35-202.ngrok-free.app"; // Reemplaza con la dirección de tu servidor
+String serverName = "http://565f-187-190-35-202.ngrok-free.app"; // Reemplaza con la dirección de tu servidor
 
 // Pin del LED que se controlará
 const int ledPin = 21;
@@ -85,18 +85,19 @@ void post_data(String action, int quantity) {
   http.end();
 }
 
-// Función para enviar datos al servidor de temperatura
-void postTemperature(float temperature) {
-  DynamicJsonDocument jsonTemperature(1024);
-  jsonTemperature["temperature"] = temperature;
+// Función para enviar datos al servidor de temperatura y humedad
+void postTemperatureAndHumidity(float temperature, float humidity) {
+  DynamicJsonDocument jsonData(1024);
+  jsonData["temperature"] = temperature;
+  jsonData["humidity"] = humidity;
 
-  String jsonTemperatureStr;
-  serializeJson(jsonTemperature, jsonTemperatureStr);
+  String jsonStr;
+  serializeJson(jsonData, jsonStr);
 
   HTTPClient http;
-  http.begin(serverName + "/temperature");
+  http.begin(serverName + "/temperature"); // Cambia la ruta al servidor para temperatura
   http.addHeader("Content-Type", "application/json");
-  int httpResponseCode = http.POST(jsonTemperatureStr);
+  int httpResponseCode = http.POST(jsonStr);
 
   if (httpResponseCode > 0) {
     Serial.print("HTTP Response code: ");
@@ -143,14 +144,15 @@ void loop() {
   // Control del LED a través de solicitudes HTTP
   getLEDStatus(); // Obtiene el estado del LED desde el servidor web
 
-  // Lectura de temperatura del sensor DHT11
+  // Lectura de temperatura y humedad del sensor DHT11
   float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
 
   if (!isnan(temperature) && temperature >= -40 && temperature <= 80) {
     Serial.print("Temperatura: ");
     Serial.println(temperature);
-    // Envía la temperatura al servidor
-    postTemperature(temperature);
+    // Envía la temperatura y humedad al servidor
+    postTemperatureAndHumidity(temperature, humidity);
   } else {
     Serial.println("Error al leer la temperatura del sensor DHT11");
   }

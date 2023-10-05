@@ -8,22 +8,22 @@
   <title>Página con Python</title>
   <style>
     body {
-      background-color: #313740;
-      color: #fff;
+      background-image: url("https://i0.wp.com/webadictos.com/media/2013/05/gif-animados-videojuegos.gif?resize=720%2C302");
+      background-size: cover;
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
+      flex-direction:row;
       align-items: center;
       justify-content: center;
       height: 100vh;
     }
 
     .sectionContainer {
-      background-color: #484141;
+      background-color: #ff00fb;
       border-radius: 4px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 10px rgb(255, 255, 255);
       margin: 20px;
       padding: 20px;
       width: 500px;
@@ -34,6 +34,7 @@
       font-size: 36px;
       margin-bottom: 20px;
       text-align: center;
+      font-style:italic;
     }
 
     .buttonContainer {
@@ -100,6 +101,12 @@
       <h2 id="temperatureValue">##</h2>
     </div>
   </div>
+  <div class="sectionContainer">
+    <h3>Humedad:</h3>
+    <div class="buttonContainer">
+      <h2 id="humidityValue">##</h2>
+    </div>
+  </div>
 </body>
 <script>
   // Obtiene las referencias de los elementos HTML que necesitamos
@@ -107,6 +114,7 @@
   const offButton = document.getElementById("offButton");
   const counterDisplay = document.getElementById("counterValue"); // Elemento para el contador
   const temperatureDisplay = document.getElementById("temperatureValue"); // Elemento para la temperatura
+  const humidityDisplay = document.getElementById("humidityValue"); // Elemento para la humedad
 
   // Agrega un evento al botón "ON" para enviar una solicitud cuando se hace clic
   onButton.addEventListener("click", () => {
@@ -135,12 +143,27 @@
         const temperature = data.temperature; // Obtiene el valor de la temperatura
         temperatureDisplay.innerHTML = temperature + " °C"; // Actualiza la temperatura en la página
       });
-  };
 
+  // Funcion para actualizar el valor de la humedad en la pagina 
+// Función para actualizar el valor de la humedad en la página
+const updateHumedad = () => {
+  fetch("/temperature") // Cambia la ruta a "/humidity" para obtener la humedad
+    .then((response) => response.json()) // Parsea la solicitud JSON
+    .then((data) => {
+      const humidity = data.humidity; // Obtiene el valor de la humedad
+      humidityDisplay.innerHTML = humidity + " %"; // Actualiza el valor de la humedad
+    });
+};
+// Actualiza la humedad cada 1 segundo
+setInterval(updateHumedad, 1000);
+
+  }
   // Actualiza el contador cada 1 segundo
   setInterval(updateCounter, 1000);
   // Actualiza la temperatura cada 1 segundo
   setInterval(updateTemperature, 1000);
+  // Actualiza la humedad cada 1 segundo
+  setInterval(updateHumedad, 1000);
 </script>
 
 </html>

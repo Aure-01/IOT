@@ -6,6 +6,7 @@ import os
 contador = 0  # Inicializa un contador en 0
 led = False  # Inicializa el estado del LED como apagado
 temperature = 0  # Inicializa la temperatura como un valor de punto flotante
+humidity = 0 #Inicializa la temperatura de la humedad
 
 # Clase que maneja las solicitudes HTTP
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -55,7 +56,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/temperature":
             # Si la URL es "/temperature", responde con el valor de temperatura
             self._set_response()
-            self.wfile.write(json.dumps({"temperature": temperature}).encode())
+            self.wfile.write(json.dumps({"temperature": temperature, "humidity": humidity}).encode())
         else:
             # Responde con un error si la URL no coincide con ninguna de las anteriores
             self.throw_custom_error("Invalid path")
@@ -71,10 +72,13 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             body_json = json.loads(post_data.decode())
             if 'temperature' in body_json:
                 global temperature  # Asegúrate de que estás modificando la variable global
+                global humidity 
                 temperature = float(body_json['temperature'])
+                humidity = float(body_json['humidity'])
                 print(f"Received temperature: {temperature}")  # Agregar este mensaje de depuración
+                print(f"Received humidity: {humidity}")  # Agregar este mensaje de depuración
                 self._set_response()
-                self.wfile.write(json.dumps({"message": "Received temperature data: " + str(temperature), "status": "OK"}).encode())
+                self.wfile.write(json.dumps({"message": "Received temperature and humidity data", "temperature": temperature, "humidity": humidity, "status": "OK"}).encode())
             elif 'action' in body_json and 'quantity' in body_json:
                 if body_json['action'] == 'asc':
                     contador += int(body_json['quantity'])

@@ -143,8 +143,6 @@
         const temperature = data.temperature; // Obtiene el valor de la temperatura
         temperatureDisplay.innerHTML = temperature + " °C"; // Actualiza la temperatura en la página
       });
-
-  // Funcion para actualizar el valor de la humedad en la pagina 
 // Función para actualizar el valor de la humedad en la página
 const updateHumedad = () => {
   fetch("/temperature") // Cambia la ruta a "/humidity" para obtener la humedad
@@ -156,7 +154,6 @@ const updateHumedad = () => {
 };
 // Actualiza la humedad cada 1 segundo
 setInterval(updateHumedad, 1000);
-
   }
   // Actualiza el contador cada 1 segundo
   setInterval(updateCounter, 1000);
@@ -165,5 +162,4 @@ setInterval(updateHumedad, 1000);
   // Actualiza la humedad cada 1 segundo
   setInterval(updateHumedad, 1000);
 </script>
-
 </html>

@@ -9,7 +9,7 @@ const char *ssid = "W_Aula_WB11";
 const char *password = "itcolima6";
 
 // Dirección URL del servidor web
-String serverName = "http://565f-187-190-35-202.ngrok-free.app"; // Reemplaza con la dirección de tu servidor
+String serverName = "http://2a0d-187-190-35-202.ngrok-free.app"; // Reemplaza con la dirección de tu servidor
 
 // Pin del LED que se controlará
 const int ledPin = 21;

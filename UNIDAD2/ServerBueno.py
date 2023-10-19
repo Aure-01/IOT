@@ -28,7 +28,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             # Si la URL es la raíz ("/"), responde con un archivo HTML
             try:
                 self._set_response(content_type="text/html")
-                html_file_path = os.path.abspath("APPS_IOT/UNIDAD2/index.html")
+                #html_file_path = os.path.abspath("APPS_IOT/UNIDAD2/index.html")
+                html_file_path = os.path.abspath("index.html")
                 with open(html_file_path, "r", encoding="utf-8") as file_to_open:
                     self.wfile.write(file_to_open.read().encode())
             except Exception as e:

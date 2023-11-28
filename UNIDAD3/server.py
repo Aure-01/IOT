@@ -13,7 +13,6 @@ BROKER = 'w3a4bbd9.ala.us-east-1.emqxsl.com'
 PORT = 8883
 SUB_TOPIC = "monitores/#"
 TOPIC = "monitores/server"
-
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tls-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'server'
@@ -92,14 +91,13 @@ def on_message(client, userdata, msg):
 
             # TODO store data in database
             print("Storing data in database...")
-            db = DBStorage()
+            db = DBStorage("base.db")
             db.connect()
             db.create_table()
             db.insert(msg_dict["data"]["humidity"],
                       msg_dict["data"]["temperature"])
             print("Data stored in database owo")
             db.disconnect()
-
         elif msg_dict["action"] == "GET_DATA":
             print("Getting data from database..")
             db = DBStorage()

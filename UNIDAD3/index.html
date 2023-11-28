@@ -9,16 +9,16 @@
         <title>MQTT con JS</title>
         <style>
             body {
-                font-family: 'Arial', sans-serif;
+                font-family: "Times New Roman", Times, serif;
                 text-align: center;
-                background: #f4f4f4 url('ah.jpg') no-repeat center center fixed;
+                background: #000000 url('https://wallpaperxyz.com/wp-content/uploads/Gif-Animated-Wallpaper-Background-Full-HD-Free-Download-for-PC-Macbook-261121-Wallpaperxyz.com-18.gif');
                 background-size: cover;
-                margin: 0;
-                padding: 0;
+                margin: 100;
+                padding: 100;
             }
 
             header {
-                background-color: #3498db;
+                background-color: transparent; 
                 padding: 20px;
             }
 
@@ -30,10 +30,11 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding: 20px;
-                background-color: rgba(255, 255, 255, 0.8); /* Fondo semitransparente para mejorar la legibilidad */
+                padding: 5px;
+                background-color: transparent;
                 border-radius: 10px;
-                margin: 20px;
+                margin: 5px;
+                color: #fff;
             }
 
             #button-container {
@@ -43,7 +44,7 @@
             }
 
             button {
-                background-color: #3498db;
+                background-color: #01694a;
                 color: white;
                 padding: 10px 20px;
                 border: none;
@@ -65,7 +66,7 @@
             }
 
             #latest-data {
-                background-color: #ecf0f1;
+                background-color: #000000;
                 padding: 10px;
                 border-radius: 10px;
                 margin-top: 20px;
@@ -78,12 +79,13 @@
             #latest-humidity {
                 margin: 10px;
                 font-size: 18px;
-                color: #3498db;
+                color: #34dbdb;
             }
 
             #output_console {
+                color: #fff;
                 text-align: left;
-                font-family: 'Courier New', monospace;
+                font-family: "Times New Roman", Times, serif;
                 margin: 10px;
             }
         </style>
@@ -94,9 +96,9 @@
         </header>
         <main>
             <div id="button-container">
-                <button id="toggle" class="led_on">Apagar led</button>
-                <button id="fetch_data" class="led_on">Solicitar datos históricos</button>
-                <button id="momazo">Solicitar momazo</button>
+                <button id="toggle" class="led_on">Led</button>
+                <button id="fetch_data" class="fetch_data">Solicitar datos históricos</button>
+                <button id="momazo">Chiste</button>
             </div>
             <div id="latest-data">
                 <p id="latest-temperature">Temperatura: </p>
@@ -117,13 +119,14 @@
                     {
                         data: [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478],
                         label: "Humedad",
-                        borderColor: "#3e95cd",
+                        labeLColor: "#FF0000",
+                        borderColor: "#8400FF",
                         fill: false,
                     },
                     {
                         data: [282, 350, 411, 502, 635, 809, 947, 1402, 3700, 5267],
                         label: "Temperatura",
-                        borderColor: "#8e5ea2",
+                        borderColor: "#FF0000",
                         fill: false,
                     },
                 ],
@@ -136,34 +139,34 @@
             },
         });
 
-        function updateChart(labels, temperature, humidity) {
+        function updateChart(labels, temperatures, humidities) {
             chart.data.labels = labels;
-            chart.data.datasets[1].data = temperature;
-            chart.data.datasets[0].data = humidity;
+            chart.data.datasets[1].data = temperatures;
+            chart.data.datasets[0].data = humidities;
             chart.update();
 
             // Update the latest values
-            if (temperature.length > 0 && humidity.length > 0) {
-                document.getElementById("latest-temperature").innerText = "Temperatura: " + temperature[temperature.length - 1];
-                document.getElementById("latest-humidity").innerText = "Humedad: " + humidity[humidity.length - 1];
+            if (temperatures.length > 0 && humidities.length > 0) {
+                document.getElementById("latest-temperature").innerText = "Temperatura: " + temperatures[temperatures.length - 1];
+                document.getElementById("latest-humidity").innerText = "Humedad: " + humidities[humidities.length - 1];
             }
         }
     </script>
     <script src="mqtt.js"></script>
     <script>
-        let PUB_TOPIC = "monitores/*";
+        let PUB_TOPIC = "monitores/web_BACANO";
         let output_console = document.getElementById("output_console");
 
         let toggle = document.getElementById("toggle");
         toggle.addEventListener("click", (e) => {
             if (toggle.className == "led_on") {
                 toggle.className = "led_off";
-                toggle.innerHTML = "Encender led";
-                client.publish(PUB_TOPIC, JSON.stringify({ led: 0 }));
-            } else {
-                toggle.className = "led_on";
                 toggle.innerHTML = "Apagar led";
                 client.publish(PUB_TOPIC, JSON.stringify({ led: 1 }));
+            } else {
+                toggle.className = "led_on";
+                toggle.innerHTML = "Encender led";
+                client.publish(PUB_TOPIC, JSON.stringify({ led: 0 }));
             }
         });
 
@@ -209,7 +212,7 @@
                 console.error(error);
             }
         });
-
+        
         const url = "wss://w3a4bbd9.ala.us-east-1.emqxsl.com:8084/mqtt";
 
         const options = {
@@ -237,7 +240,7 @@
             try {
                 let data = JSON.parse(message.toString());
                 if (data["from"] == "server" && data["to"] == "WEB") {
-                    updateChart(data["data"]["labels"], data["data"]["temperature"], data["data"]["humidity"]);
+                    updateChart(data["data"]["labels"], data["data"]["temperatures"], data["data"]["humidities"]);
                 } else if (data["from"] == "ESP32" && data["to"] == "broadcast" && data["action"] == "UPDATE_COUNTER") {
                     document.getElementById("counter_display").innerHTML = data["value"];
                 }

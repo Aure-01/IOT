@@ -6,50 +6,43 @@
 #include <DHT.h>
 
 // WiFi
-const char *ssid = "Cuarto de Aure_5G";   // Enter your WiFi name
+const char *ssid = "Cuarto de Aure_2.4G";   // Enter your WiFi name
 const char *password = "2WC456400946"; // Enter WiFi password
 
 
 // MQTT Broker
-const char *mqtt_broker = "w3a4bbd9.ala.us-east-1.emqxsl.com";    // broker address
-const char *mqttTopic = "monitores/#";                            // define topic
-const char *mqtt_username = "server";                              // username for authentication
-const char *mqtt_password = "password";                           // password for authentication
-const int mqtt_port = 8883;                                       // port of MQTT over TLS/SSL
+const char *mqttServer = "w3a4bbd9.ala.us-east-1.emqxsl.com";    // broker address
+const int mqttPort = 8883;                                       // port of MQTT over TLS/SSL
+const char *mqttUser = "server";                              // username for authentication
+const char *mqttPassword = "password";                           // password for authentication
+const char *mqttTopic = "monitores/web_BACANO";                            // define topic
 
-// load DigiCert Global Root CA ca_cert
-const char *ca_cert =
-    "-----BEGIN CERTIFICATE-----\n"
-    "MIIEqjCCA5KgAwIBAgIQAnmsRYvBskWr+YBTzSybsTANBgkqhkiG9w0BAQsFADBh\n"
-    "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"
-    "d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n"
-    "QTAeFw0xNzExMjcxMjQ2MTBaFw0yNzExMjcxMjQ2MTBaMG4xCzAJBgNVBAYTAlVT\n"
-    "MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n"
-    "b20xLTArBgNVBAMTJEVuY3J5cHRpb24gRXZlcnl3aGVyZSBEViBUTFMgQ0EgLSBH\n"
-    "MTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALPeP6wkab41dyQh6mKc\n"
-    "oHqt3jRIxW5MDvf9QyiOR7VfFwK656es0UFiIb74N9pRntzF1UgYzDGu3ppZVMdo\n"
-    "lbxhm6dWS9OK/lFehKNT0OYI9aqk6F+U7cA6jxSC+iDBPXwdF4rs3KRyp3aQn6pj\n"
-    "pp1yr7IB6Y4zv72Ee/PlZ/6rK6InC6WpK0nPVOYR7n9iDuPe1E4IxUMBH/T33+3h\n"
-    "yuH3dvfgiWUOUkjdpMbyxX+XNle5uEIiyBsi4IvbcTCh8ruifCIi5mDXkZrnMT8n\n"
-    "wfYCV6v6kDdXkbgGRLKsR4pucbJtbKqIkUGxuZI2t7pfewKRc5nWecvDBZf3+p1M\n"
-    "pA8CAwEAAaOCAU8wggFLMB0GA1UdDgQWBBRVdE+yck/1YLpQ0dfmUVyaAYca1zAf\n"
-    "BgNVHSMEGDAWgBQD3lA1VtFMu2bwo+IbG8OXsj3RVTAOBgNVHQ8BAf8EBAMCAYYw\n"
-    "HQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8C\n"
-    "AQAwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdp\n"
-    "Y2VydC5jb20wQgYDVR0fBDswOTA3oDWgM4YxaHR0cDovL2NybDMuZGlnaWNlcnQu\n"
-    "Y29tL0RpZ2lDZXJ0R2xvYmFsUm9vdENBLmNybDBMBgNVHSAERTBDMDcGCWCGSAGG\n"
-    "/WwBAjAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BT\n"
-    "MAgGBmeBDAECATANBgkqhkiG9w0BAQsFAAOCAQEAK3Gp6/aGq7aBZsxf/oQ+TD/B\n"
-    "SwW3AU4ETK+GQf2kFzYZkby5SFrHdPomunx2HBzViUchGoofGgg7gHW0W3MlQAXW\n"
-    "M0r5LUvStcr82QDWYNPaUy4taCQmyaJ+VB+6wxHstSigOlSNF2a6vg4rgexixeiV\n"
-    "4YSB03Yqp2t3TeZHM9ESfkus74nQyW7pRGezj+TC44xCagCQQOzzNmzEAP2SnCrJ\n"
-    "sNE2DpRVMnL8J6xBRdjmOsC3N6cQuKuRXbzByVBjCqAA8t1L0I+9wXJerLPyErjy\n"
-    "rMKWaBFLmfK/AHNF4ZihwPGOc7w6UHczBZXH5RFzJNnww+WnKuTPI0HfnVH8lg==\n"
-    "-----END CERTIFICATE-----\n";
+const char* ca_cert = \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
+"MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n" \
+"d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n" \
+"QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n" \
+"MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n" \
+"b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n" \
+"9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n" \
+"CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n" \
+"nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n" \
+"43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n" \
+"T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n" \
+"gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n" \
+"BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n" \
+"TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n" \
+"DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n" \
+"hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n" \
+"06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n" \
+"PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n" \
+"YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n" \
+"CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=" \
+"-----END CERTIFICATE-----\n";
 
-// init secure wifi client
+
 WiFiClientSecure espClient;
-// use wifi client to init mqtt client
 PubSubClient client(espClient);
 
 int valor = 0; // Este es el valor que incrementarás o decrementarás
@@ -68,50 +61,48 @@ DHT dht(DHTPIN, DHTTYPE);
 unsigned long tiempoAnterior = 0;
 const long intervaloEnvio = 30000;
 
-void setup()
-{
-  // Set software serial baud to 115200;
+void setup() {
   Serial.begin(115200);
+
   // Inicializa los pines de los botones como entrada
   pinMode(pinBotonIncrementar, INPUT_PULLUP);
   pinMode(pinBotonDecrementar, INPUT_PULLUP);
   pinMode(pinLED, OUTPUT);
   dht.begin();
-  // connecting to a WiFi network
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.println("Connecting to WiFi..");
-  }
-  Serial.println("Connected to the WiFi network");
 
-  // set root ca cert
+  // Conexión a la red WiFi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Conectando a WiFi...");
+  }
+  Serial.println("Conectado a la red WiFi");
+
+  // Configuración del cliente MQTT con TLS/SSL
   espClient.setCACert(ca_cert);
-  // connecting to a mqtt broker
-  client.setServer(mqtt_broker, mqtt_port);
+  client.setServer(mqttServer, mqttPort);
   client.setCallback(callback);
-  while (!client.connected())
-  {
+
+  while (!client.connected()) {
     String client_id = "esp32-client-";
     client_id += String(WiFi.macAddress());
-    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password))
-    {
-      Serial.println("Public emqx mqtt broker connected");
-    }
-    else
-    {
-      Serial.print("Failed to connect to MQTT broker, rc=");
+    Serial.printf("El cliente %s se conecta al servidor MQTT\n", client_id.c_str());
+
+    if (client.connect(client_id.c_str(), mqttUser, mqttPassword)) {
+      Serial.println("Conexión exitosa al servidor MQTT");
+    } else {
+      Serial.print("Error de conexión, rc=");
       Serial.print(client.state());
-      Serial.println("Retrying in 5 seconds.");
-      delay(5000);
+      Serial.println(" Intentando de nuevo en 2 segundos");
+      delay(2000);
     }
   }
-  // publish and subscribe
-  client.publish(mqttTopic, "Hi EMQX I'm ESP32 ^^"); // publish to the topic
-  client.subscribe(mqttTopic);                       // subscribe from the topic
+
+  // Publicación y suscripción
+  client.publish(mqttTopic, "¡Hola, soy ESP32 con TLS/SSL ^^!");
+  client.subscribe(mqttTopic);
 }
+
 void loop() {
   // Lee el estado de los botones
   int estadoBotonIncrementar = digitalRead(pinBotonIncrementar);
@@ -146,22 +137,20 @@ void loop() {
   client.loop();
 }
 
-void callback(char *topic, byte *payload, unsigned int length)
-{
-  // Este es el manejador de mensajes MQTT de entrada
-  Serial.print("Message arrived in topic: ");
+void callback(char* topic, byte* payload, unsigned int length) {
+   // Este es el manejador de mensajes MQTT de entrada
+  Serial.print("Mensaje recibido en el tema: ");
   Serial.println(topic);
 
   // Convierte el payload en una cadena
   String message;
-  for (int i = 0; i < length; i++)
-  {
+  for (int i = 0; i < length; i++) {
     message += (char)payload[i];
   }
   Serial.print("Mensaje: ");
   Serial.println(message);
 
-  // Create a dynamic JSON document based on the payload size
+  // Procesa el mensaje JSON
   DynamicJsonDocument doc(1024);
   deserializeJson(doc, message);
 
@@ -193,7 +182,7 @@ void enviarValor(int valor) {
   Serial.println(jsonString);
 
   // Publica el mensaje JSON en el tema MQTT
-  client.publish("monitores/#", jsonString.c_str());
+  client.publish("monitores/web_BACANO", jsonString.c_str());
 }
 
 void enviarDatosDHT(float temperatura, float humedad) {

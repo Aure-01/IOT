@@ -34,18 +34,18 @@ class DBStorage:
         self.cursor.execute(query, (one_hour_ago,))
         
         labels = []
-        temperature = []
-        humidity = []
+        temperatures = []
+        humidities = []
 
         for row in self.cursor.fetchall():
             labels.append(row[3])
-            temperature.append(row[1])
-            humidity.append(row[2])
+            temperatures.append(row[1])
+            humidities.append(row[2])
 
         return {
             "labels": labels,
-            "temperature": temperature,
-            "humidity": humidity
+            "temperatures": temperatures,
+            "humidities": humidities
         }
 
 

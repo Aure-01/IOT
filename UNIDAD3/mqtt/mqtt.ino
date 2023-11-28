@@ -1,18 +1,18 @@
+#include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <WiFiClientSecure.h>
-
 #include <ArduinoJson.h>
-#define LED_PIN 2
+#include <WiFiClientSecure.h>
+#include <DHT.h>
 
 // WiFi
-const char *ssid = "W_Aula_WB11";   // Enter your WiFi name
-const char *password = "itcolima6"; // Enter WiFi password
+const char *ssid = "Cuarto de Aure_5G";   // Enter your WiFi name
+const char *password = "2WC456400946"; // Enter WiFi password
 
 
 // MQTT Broker
 const char *mqtt_broker = "w3a4bbd9.ala.us-east-1.emqxsl.com";    // broker address
-const char *topic = "test";                                       // define topic
+const char *mqttTopic = "monitores/#";                            // define topic
 const char *mqtt_username = "esp32";                              // username for authentication
 const char *mqtt_password = "password";                           // password for authentication
 const int mqtt_port = 8883;                                       // port of MQTT over TLS/SSL
@@ -52,10 +52,31 @@ WiFiClientSecure espClient;
 // use wifi client to init mqtt client
 PubSubClient client(espClient);
 
+int valor = 0; // Este es el valor que incrementarás o decrementarás
+
+// Pines de los botones
+const int pinBotonIncrementar = 4;  
+const int pinBotonDecrementar = 5;  
+const int pinLED = 21;
+
+// Configuración del sensor DHT11
+#define DHTPIN 2  // Ejemplo, ajusta según tu configuración
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+unsigned long tiempoAnterior = 0;
+const long intervaloEnvio = 30000;
+
 void setup()
 {
   // Set software serial baud to 115200;
   Serial.begin(115200);
+  // Inicializa los pines de los botones como entrada
+  pinMode(pinBotonIncrementar, INPUT_PULLUP);
+  pinMode(pinBotonDecrementar, INPUT_PULLUP);
+  pinMode(pinLED, OUTPUT);
+  dht.begin();
   // connecting to a WiFi network
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
@@ -88,90 +109,117 @@ void setup()
     }
   }
   // publish and subscribe
-  client.publish(topic, "Hi EMQX I'm ESP32 ^^"); // publish to the topic
-  client.subscribe(topic);                       // subscribe from the topic
+  client.publish(mqttTopic, "Hi EMQX I'm ESP32 ^^"); // publish to the topic
+  client.subscribe(mqttTopic);                       // subscribe from the topic
+}
+void loop() {
+  // Lee el estado de los botones
+  int estadoBotonIncrementar = digitalRead(pinBotonIncrementar);
+  int estadoBotonDecrementar = digitalRead(pinBotonDecrementar);
 
-  pinMode(LED_PIN, OUTPUT);
+  // Incrementa o decrementa el valor según el estado de los botones
+  if (estadoBotonIncrementar == HIGH) {
+    incrementarValor();
+    delay(500);  // Evita múltiples incrementos rápidos con un pequeño retardo
+  }
+
+  if (estadoBotonDecrementar == HIGH) {
+    decrementarValor();
+    delay(500);  // Evita múltiples decrementos rápidos con un pequeño retardo
+  }
+
+  // Verifica el intervalo de envío para los datos del sensor DHT11
+  unsigned long tiempoActual = millis();
+  if (tiempoActual - tiempoAnterior >= intervaloEnvio) {
+    // Lee datos del sensor DHT11
+    float temperatura = dht.readTemperature();
+    float humedad = dht.readHumidity();
+
+    // Publica los datos en el tema MQTT
+    enviarDatosDHT(temperatura, humedad);
+
+    // Actualiza el tiempo anterior
+    tiempoAnterior = tiempoActual;
+  }
+
+  // Continúa con el loop del cliente MQTT
+  client.loop();
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
+  // Este es el manejador de mensajes MQTT de entrada
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
-  Serial.print("Message:");
+
+  // Convierte el payload en una cadena
+  String message;
   for (int i = 0; i < length; i++)
   {
-    Serial.print((char)payload[i]);
+    message += (char)payload[i];
   }
-  Serial.println();
+  Serial.print("Mensaje: ");
+  Serial.println(message);
 
   // Create a dynamic JSON document based on the payload size
-  DynamicJsonDocument jsonDocument(1024);
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, message);
 
-  // Parse the JSON payload
-  DeserializationError error = deserializeJson(jsonDocument, payload, length);
-
-  if (error)
-  {
-    Serial.print("JSON parsing failed: ");
-    Serial.println(error.c_str());
-    return;
-  }
-
-  // Check if the "led" key is present in the JSON
-  if (jsonDocument.containsKey("led"))
-  {
-    int ledValue = jsonDocument["led"].as<int>();
-
-    // Do something with the "led" value, e.g., turn on or off an LED
-    if (ledValue == 1)
-    {
-      // Turn on the LED
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("LED is ON");
-    }
-    else if (ledValue == 0)
-    {
-      // Turn off the LED
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("LED is OFF");
-    }
-    else
-    {
-      Serial.println("Invalid 'led' value. Expected 0 or 1.");
-    }
-  }
-
-  Serial.println("-----------------------");
-}
-
-void reconnect()
-{
-  while (!client.connected())
-  {
-    Serial.println("Reconnecting to MQTT broker...");
-    String client_id = "esp8266-client-";
-    client_id += String(WiFi.macAddress());
-    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password))
-    {
-      Serial.println("Reconnected to MQTT broker.");
-      client.subscribe(topic);
-    }
-    else
-    {
-      Serial.print("Failed to reconnect to MQTT broker, rc=");
-      Serial.print(client.state());
-      Serial.println("Retrying in 5 seconds.");
-      delay(5000);
+  // Verifica si el mensaje contiene la propiedad "led"
+  if (doc.containsKey("led")) {
+    int estadoLED = doc["led"];
+    if (estadoLED == 0) {
+      digitalWrite(pinLED, LOW);  // Apagar LED
+    } else if (estadoLED == 1) {
+      digitalWrite(pinLED, HIGH);  // Encender LED
     }
   }
 }
 
-void loop()
-{
-  if (!client.connected())
-  {
-    reconnect();
-  }
-  client.loop();
+void enviarValor(int valor) {
+  // Crea un objeto JSON con el formato requerido
+  DynamicJsonDocument doc(1024);
+  doc["from"] = "esp32";
+  doc["to"] = "broadcast";
+  doc["action"] = "UPDATE_COUNTER";
+  doc["value"] = valor;
+
+  // Convierte el objeto JSON en una cadena
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  // Imprime el mensaje JSON en la consola
+  Serial.print("Enviando JSON: ");
+  Serial.println(jsonString);
+
+  // Publica el mensaje JSON en el tema MQTT
+  client.publish("monitores/#", jsonString.c_str());
+}
+
+void enviarDatosDHT(float temperatura, float humedad) {
+  // Crea un objeto JSON con los datos del sensor DHT11
+  DynamicJsonDocument doc(1024);
+  doc["from"] = "esp32";
+  doc["to"] = "server";
+  doc["action"] = "SEND_DATA";
+  JsonObject data = doc.createNestedObject("data");
+  data["temperature"] = temperatura;
+  data["humidity"] = humedad;
+
+  // Convierte el objeto JSON en una cadena
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  // Publica el mensaje JSON en el tema MQTT
+  client.publish(mqttTopic, jsonString.c_str());
+}
+
+void incrementarValor() {
+  valor++;
+  enviarValor(valor);
+}
+
+void decrementarValor() {
+  valor--;
+  enviarValor(valor);
 }

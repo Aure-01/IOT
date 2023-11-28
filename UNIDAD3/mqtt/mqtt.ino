@@ -6,8 +6,8 @@
 #include <DHT.h>
 
 // WiFi
-const char *ssid = "Cuarto de Aure_2.4G";   // Enter your WiFi name
-const char *password = "2WC456400946"; // Enter WiFi password
+const char *ssid = "W_Aula_WB11";   // Enter your WiFi name
+const char *password = "itcolima6"; // Enter WiFi password
 
 
 // MQTT Broker

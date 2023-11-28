@@ -13,7 +13,7 @@ const char *password = "2WC456400946"; // Enter WiFi password
 // MQTT Broker
 const char *mqtt_broker = "w3a4bbd9.ala.us-east-1.emqxsl.com";    // broker address
 const char *mqttTopic = "monitores/#";                            // define topic
-const char *mqtt_username = "esp32";                              // username for authentication
+const char *mqtt_username = "server";                              // username for authentication
 const char *mqtt_password = "password";                           // password for authentication
 const int mqtt_port = 8883;                                       // port of MQTT over TLS/SSL
 
@@ -179,7 +179,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 void enviarValor(int valor) {
   // Crea un objeto JSON con el formato requerido
   DynamicJsonDocument doc(1024);
-  doc["from"] = "esp32";
+  doc["from"] = "ESP32";
   doc["to"] = "broadcast";
   doc["action"] = "UPDATE_COUNTER";
   doc["value"] = valor;
@@ -199,7 +199,7 @@ void enviarValor(int valor) {
 void enviarDatosDHT(float temperatura, float humedad) {
   // Crea un objeto JSON con los datos del sensor DHT11
   DynamicJsonDocument doc(1024);
-  doc["from"] = "esp32";
+  doc["from"] = "ESP32";
   doc["to"] = "server";
   doc["action"] = "SEND_DATA";
   JsonObject data = doc.createNestedObject("data");

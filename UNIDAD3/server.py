@@ -8,7 +8,6 @@ import time
 from db_storage import DBStorage
 
 from paho.mqtt import client as mqtt_client
-from datetime import datetime, timedelta
 
 BROKER = 'w3a4bbd9.ala.us-east-1.emqxsl.com'
 PORT = 8883
@@ -102,19 +101,13 @@ def on_message(client, userdata, msg):
             db.disconnect()
 
         elif msg_dict["action"] == "GET_DATA":
-            print("Getting data from database...")
+            print("Getting data from database..")
             db = DBStorage()
             db.connect()
-
-            # Calcular las fechas start y end
-            end = datetime.now()
-            start = end - timedelta(hours=1)
-
-            data = db.get_measurements(start, end)
+            data = db.get_measurements_last_hour()
             db.disconnect()
-            print("Data retrieved from database owo")
-
-            # send data to client
+            print("Data retrieved from database")
+            #send data to client
             msg_dict = {"from": "server", "to": msg_dict["from"],
                         "action": "SEND_DATA", "data": data}
             out_msg = json.dumps(msg_dict)

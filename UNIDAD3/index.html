@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>MQTT con JS</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                text-align: center;
+                background: #f4f4f4 url('ah.jpg') no-repeat center center fixed;
+                background-size: cover;
+                margin: 0;
+                padding: 0;
+            }
+
+            header {
+                background-color: #3498db;
+                padding: 20px;
+            }
+
+            h1 {
+                color: #fff;
+            }
+
+            main {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                background-color: rgba(255, 255, 255, 0.8); /* Fondo semitransparente para mejorar la legibilidad */
+                border-radius: 10px;
+                margin: 20px;
+            }
+
+            #button-container {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            button {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                cursor: pointer;
+                margin: 10px;
+                border-radius: 5px;
+                transition: background-color 0.3s ease;
+            }
+
+            button.led_off {
+                background-color: #e74c3c;
+            }
+
+            canvas {
+                display: block;
+                margin: auto;
+                max-width: 80vw;
+                max-height: 60vh;
+            }
+
+            #latest-data {
+                background-color: #ecf0f1;
+                padding: 10px;
+                border-radius: 10px;
+                margin-top: 20px;
+                display: flex;
+                justify-content: space-around;
+                width: 50%;
+            }
+
+            #latest-temperature,
+            #latest-humidity {
+                margin: 10px;
+                font-size: 18px;
+                color: #3498db;
+            }
+
+            #output_console {
+                text-align: left;
+                font-family: 'Courier New', monospace;
+                margin: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>MQTT CON JS</h1>
+        </header>
+        <main>
+            <div id="button-container">
+                <button id="toggle" class="led_on">Apagar led</button>
+                <button id="fetch_data" class="led_on">Solicitar datos históricos</button>
+                <button id="momazo">Solicitar momazo</button>
+            </div>
+            <div id="latest-data">
+                <p id="latest-temperature">Temperatura: </p>
+                <p id="latest-humidity">Humedad: </p>
+            </div>
+            <canvas id="line-chart" width="800" height="450"></canvas>
+            <p style="display: none;" id="output_console"></p>
+            <p id="momazo-result"></p>
+        </main>
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+    <script>
+        let chart = new Chart(document.getElementById("line-chart"), {
+            type: "line",
+            data: {
+                labels: [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050],
+                datasets: [
+                    {
+                        data: [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478],
+                        label: "Humedad",
+                        borderColor: "#3e95cd",
+                        fill: false,
+                    },
+                    {
+                        data: [282, 350, 411, 502, 635, 809, 947, 1402, 3700, 5267],
+                        label: "Temperatura",
+                        borderColor: "#8e5ea2",
+                        fill: false,
+                    },
+                ],
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: "World population per region (in millions)",
+                },
+            },
+        });
+
+        function updateChart(labels, temperature, humidity) {
+            chart.data.labels = labels;
+            chart.data.datasets[1].data = temperature;
+            chart.data.datasets[0].data = humidity;
+            chart.update();
+
+            // Update the latest values
+            if (temperature.length > 0 && humidity.length > 0) {
+                document.getElementById("latest-temperature").innerText = "Temperatura: " + temperature[temperature.length - 1];
+                document.getElementById("latest-humidity").innerText = "Humedad: " + humidity[humidity.length - 1];
+            }
+        }
+    </script>
+    <script src="mqtt.js"></script>
+    <script>
+        let PUB_TOPIC = "monitores/*";
+        let output_console = document.getElementById("output_console");
+
+        let toggle = document.getElementById("toggle");
+        toggle.addEventListener("click", (e) => {
+            if (toggle.className == "led_on") {
+                toggle.className = "led_off";
+                toggle.innerHTML = "Encender led";
+                client.publish(PUB_TOPIC, JSON.stringify({ led: 0 }));
+            } else {
+                toggle.className = "led_on";
+                toggle.innerHTML = "Apagar led";
+                client.publish(PUB_TOPIC, JSON.stringify({ led: 1 }));
+            }
+        });
+
+        document.getElementById("fetch_data").addEventListener("click", (e) => {
+            client.publish(
+                PUB_TOPIC,
+                JSON.stringify({
+                    from: "WEB",
+                    to: "server",
+                    action: "GET_DATA",
+                })
+            );
+        });
+
+        let momazoResult = document.getElementById("momazo-result");
+
+        document.getElementById("momazo").addEventListener("click", async () => {
+            const url = 'https://dad-jokes.p.rapidapi.com/random/joke';
+            const options = {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': '6d2d6d9c6dmshea55cb890fec6f6p1f127bjsn410937b0b91d',
+                    'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com'
+                }
+            };
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+
+                const setup = result.body[0].setup;
+                const punchline = result.body[0].punchline;
+                const chamacos = "Chamacos"
+
+                console.log('Setup:', setup);
+                console.log('Punchline:', punchline);
+                console.log(chamacos)
+
+                momazoResult.innerText = `Setup: ${setup}\n Punchline: ${punchline}`;
+
+                client.publish(PUB_TOPIC, JSON.stringify({ chamacos, setup, punchline }));
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        const url = "wss://w3a4bbd9.ala.us-east-1.emqxsl.com:8084/mqtt";
+
+        const options = {
+            clean: true,
+            connectTimeout: 4000,
+            clientId: "emqxjs_" + Math.random().toString(16).substr(2, 8),
+            username: "server",
+            password: "password",
+        };
+
+        const client = mqtt.connect(url, options);
+
+        client.on("connect", function () {
+            console.log("Connected");
+            client.subscribe(PUB_TOPIC, function (err) {
+                if (!err) {
+                    console.log("Message is published");
+                    client.publish(PUB_TOPIC, "Hello mqtt from js");
+                }
+            });
+        });
+
+        client.on("message", function (topic, message) {
+            output_console.innerHTML = message.toString() + "<br>" + output_console.innerHTML;
+            try {
+                let data = JSON.parse(message.toString());
+                if (data["from"] == "server" && data["to"] == "WEB") {
+                    updateChart(data["data"]["labels"], data["data"]["temperature"], data["data"]["humidity"]);
+                } else if (data["from"] == "ESP32" && data["to"] == "broadcast" && data["action"] == "UPDATE_COUNTER") {
+                    document.getElementById("counter_display").innerHTML = data["value"];
+                }
+            } catch (e) {
+                console.log("No es un JSON");
+            }
+        });
+    </script>
+</html>

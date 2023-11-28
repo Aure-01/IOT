@@ -104,12 +104,17 @@
                 },
             },
         });
-
         function updateChart(labels, temperatures, humidities) {
             chart.data.labels = labels;
-            chart.data.datasets[0].data = temperatures;
-            chart.data.datasets[1].data = humidities;
+            chart.data.datasets[1].data = temperatures;
+            chart.data.datasets[0].data = humidities;
             chart.update();
+
+            // Update the latest values
+            if (temperatures.length > 0 && humidities.length > 0) {
+                document.getElementById("latest-temperature").innerText = "Temperatura: " + temperatures[temperatures.length - 1];
+                document.getElementById("latest-humidity").innerText = "Humedad: " + humidities[humidities.length - 1];
+            }
         }
     </script>
     <script src="mqtt.js"></script>

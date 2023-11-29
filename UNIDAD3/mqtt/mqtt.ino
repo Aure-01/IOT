@@ -15,7 +15,7 @@ const char *mqttServer = "w3a4bbd9.ala.us-east-1.emqxsl.com";    // broker addre
 const int mqttPort = 8883;                                       // port of MQTT over TLS/SSL
 const char *mqttUser = "server";                              // username for authentication
 const char *mqttPassword = "password";                           // password for authentication
-const char *mqttTopic = "monitores/web_BACANO";                            // define topic
+const char *mqttTopic = "monitores/web_bueno";                            // define topic
 
 const char* ca_cert = \
 "-----BEGIN CERTIFICATE-----\n" \
@@ -182,7 +182,7 @@ void enviarValor(int valor) {
   Serial.println(jsonString);
 
   // Publica el mensaje JSON en el tema MQTT
-  client.publish("monitores/web_BACANO", jsonString.c_str());
+  client.publish("monitores/web_bueno", jsonString.c_str());
 }
 
 void enviarDatosDHT(float temperatura, float humedad) {

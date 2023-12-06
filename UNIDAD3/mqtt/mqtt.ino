@@ -6,7 +6,7 @@
 #include <DHT.h>
 
 // WiFi
-const char *ssid = "W_Aula_WB11";   // Enter your WiFi name
+const char *ssid = "A_Escolares_Jefatura";   // Enter your WiFi name
 const char *password = "itcolima6"; // Enter WiFi password
 
 

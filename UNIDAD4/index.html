@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estacionamiento con MQTT</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Times, serif;
+            text-align: center;
+            background: #000000 url('https://media.tenor.com/wZz4FTYM67oAAAAC/oshi-no-ko-anime.gif');
+            background-size: cover;
+            margin: 100;
+            padding: 100;
+        }
+
+        header {
+            background-color: transparent;
+            padding: 20px;
+        }
+
+        h1 {
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 40px;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width:fit-content; 
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            background-color: transparent;
+            border-radius: 10px;
+            margin: 5px;
+            color: #fff;
+        }
+
+        .data-display {
+            background-color: #000000;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: auto; /* Adjust the width as needed */
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        #button-container {
+                display:block;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            button {
+                background-color: #01694a;
+                font-family: "Times New Roman", Times, serif;
+                color: white;
+                padding: 30px 40px;
+                border: none;
+                cursor: pointer;
+                margin: 10px;
+                border-radius: 5px;
+                transition: background-color 0.3s ease;
+                font-size: 18px;
+            }
+            button.off {
+                background-color: #e74c3c;
+                font-family: "Times New Roman", Times, serif;
+            }
+    </style>
+</head>
+<body>
+    <header><center>
+        <h1>Estacionamiento con MQTT</h1>
+    </center>
+    </header>
+    <main>
+        <div id="data-container" class="data-display">
+            <div id="button-container">
+                <button disabled>Distancia 1: <a id="distancia1_display">  </a></button>
+                <button disabled>Distancia 2: <a id="distancia2_display">  </a></button>
+                <button disabled>Servo 1: <a id="servo1_display">  </a></button>
+                <button disabled>Servo 2: <a id="servo2_display">  </a></button>
+            </div>
+        </div>
+    </main>
+    <script src="mqtt.js"></script>
+    <script>
+        let PUB_TOPIC = "monitores/esp32";
+
+        const url = "wss://w3a4bbd9.ala.us-east-1.emqxsl.com:8084/mqtt";
+        const options = {
+            clean: true,
+            connectTimeout: 4000,
+            clientId: "emqxjs_" + Math.random().toString(16).substr(2, 8),
+            username: "WEB",
+            password: "password",
+        };
+
+        const client = mqtt.connect(url, options);
+
+        client.on("connect", function () {
+            console.log("Connected");
+            client.subscribe(PUB_TOPIC, function (err) {
+                if (!err) {
+                    console.log("Subscribed to " + PUB_TOPIC);
+                } else {
+                    console.log("Subscription error:", err);
+                }
+            });
+        });
+
+        client.on("message", function (topic, message) {
+            console.log("Received message uwu:", message.toString());
+            try {
+                // Verificar si el mensaje no está vacío
+                if (message.length > 0) {
+                    let data = JSON.parse(message.toString());
+
+                    if (data && Object.keys(data).length > 0) {
+                        console.log("Received valid JSON with data xd:", data);
+                        updateLatestData(data);
+                        } else {
+                        console.log("Received JSON with no data or empty object.");
+                    }
+                } else {
+                    console.log("Received an empty message.");
+                }
+            } catch (e) {
+                console.log("Error parsing JSON:", e);
+            }
+        });
+        const updateLatestData = (data) => {
+            console.log("Updating data:", data);
+            console.log("Distancia 1:", data.distancia1);
+            console.log("Distancia 2:", data.distancia2);
+            console.log("Servo 1:", data.servo1);
+            console.log("Servo 2:", data.servo2);
+            // Verifica si la estructura del objeto data es correcta
+            console.log("Received data:", JSON.stringify(data));
+
+            // Distancia 1
+            document.getElementById("distancia1_display").innerText = data.distancia1 !== undefined ? data.distancia1 : 'No data';
+
+            // Distancia 2
+            document.getElementById("distancia2_display").innerText = data.distancia2 !== undefined ? data.distancia2 : 'No data';
+
+            // Servo 1
+            const servo1Display = document.getElementById("servo1_display");
+            servo1Display.innerText = data.servo1 !== undefined ? (data.servo1 === -1 ? 'Valor especial' : data.servo1) : 'No data';
+            if (data.servo1 === 89) {
+                servo1Display.style.backgroundColor = '#FF0000'; // Cambia el color a rojo
+                servo1Display.innerText = 'Ocupado';
+            } else {
+                servo1Display.style.backgroundColor = '#01694a'; // Restablece el color original
+            }
+
+            // Servo 2
+            const servo2Display = document.getElementById("servo2_display");
+            servo2Display.innerText = data.servo2 !== undefined ? (data.servo2 === -1 ? 'Valor especial' : data.servo2) : 'No data';
+            if (data.servo2 === 89) {
+                servo2Display.style.backgroundColor = '#FF0000'; // Cambia el color a rojo
+                servo2Display.innerText = 'Ocupado';
+            } else {
+                servo2Display.style.backgroundColor = '#01694a'; // Restablece el color original
+            }
+        };
+
+        const handleMQTTMessage = (topic, message) => {
+            console.log("Mensaje recibido:", message.toString());
+            try {
+                if (message.length > 0) {
+                    let data = JSON.parse(message.toString());
+
+                    if (data && Object.keys(data).length > 0) {
+                        console.log("JSON recibido con datos:", data);
+                        if (data.from === "esp32" && data.to === "WEB") {
+                            // Update the latest data
+                            updateLatestData(data);
+                        }
+                    } else {
+                        console.log("Received JSON with no data or empty object.");
+                    }
+                } else {
+                    console.log("Received an empty message.");
+                }
+            } catch (e) {
+                console.log("Error parsing JSON:", e);
+            }
+        };
+        // Manejo de errores en la conexión MQTT
+        client.on("error", function (error) {
+            console.log("MQTT Error:", error);
+        });
+    </script> 
+</body>
+</html>

@@ -146,43 +146,55 @@ void loop() {
 
 
 void callback(char *topic, byte *payload, unsigned int length) {
-  // Este es el manejador de mensajes MQTT de entrada
-  Serial.print("Mensaje recibido en el tema: ");
-  Serial.println(topic);
+    Serial.print("Mensaje recibido en el tema: ");
+    Serial.println(topic);
 
-  // Convierte el payload en una cadena
-  String message;
-  for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
-  }
-  Serial.print("Mensaje: ");
-  Serial.println(message);
+    // Convierte el payload en una cadena
+    String message;
+    for (int i = 0; i < length; i++) {
+        message += (char)payload[i];
+    }
+    Serial.print("Mensaje: ");
+    Serial.println(message);
 
-  // Procesa el mensaje JSON
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, message);
+    // Procesa el mensaje JSON
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, message);
 
-  // Verifica si el mensaje contiene la propiedad "distancia1" y "distancia2"
-  if (doc.containsKey("distancia1") && doc.containsKey("distancia2") && doc.containsKey("servo1") && doc.containsKey("servo2")) {
-    int distancia1 = doc["distancia1"];
-    int distancia2 = doc["distancia2"];
-    int servo1Value = doc["servo1"];
-    int servo2Value = doc["servo2"];
+    // Verifica si el mensaje contiene la propiedad "action"
+    if (doc.containsKey("action")) {
+        String action = doc["action"];
+        if (action.equals("activarServo1")) {
+            // Activa físicamente el servo1
+            levantarPluma(servo1, tiempoPluma);
+        } else if (action.equals("activarServo2")) {
+            // Activa físicamente el servo2
+            levantarPluma(servo2, tiempoPluma);
+        }
+    } else {
+        // Procesa otros datos del mensaje (distancia, servo1, servo2)
+        if (doc.containsKey("distancia1") && doc.containsKey("distancia2") && doc.containsKey("servo1") && doc.containsKey("servo2")) {
+            int distancia1 = doc["distancia1"];
+            int distancia2 = doc["distancia2"];
+            int servo1Value = doc["servo1"];
+            int servo2Value = doc["servo2"];
 
-    // Imprime la información recibida
-    Serial.print("Distancia1: ");
-    Serial.println(distancia1);
-    Serial.print("Distancia2: ");
-    Serial.println(distancia2);
-    Serial.print("Servo1: ");
-    Serial.println(servo1Value);
-    Serial.print("Servo2: ");
-    Serial.println(servo2Value);
+            // Imprime la información recibida
+            Serial.print("Distancia1: ");
+            Serial.println(distancia1);
+            Serial.print("Distancia2: ");
+            Serial.println(distancia2);
+            Serial.print("Servo1: ");
+            Serial.println(servo1Value);
+            Serial.print("Servo2: ");
+            Serial.println(servo2Value);
 
-    // Puedes hacer algo con la distancia y el valor del servo recibidos
-    // Por ejemplo, actualizar variables globales, realizar acciones, etc.
-  }
+            // Puedes hacer algo con la distancia y el valor del servo recibidos
+            // Por ejemplo, actualizar variables globales, realizar acciones, etc.
+        }
+    }
 }
+
 
 int obtenerDistancia(int triggerPin, int echoPin) {
   digitalWrite(triggerPin, LOW);

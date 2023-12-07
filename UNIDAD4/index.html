@@ -182,37 +182,13 @@
             }
         };
 
-        const activarServo = (numeroServo) => {
+            const activarServo = (numeroServo) => {
         console.log(`Activando Servo ${numeroServo}`);
         // Envia un mensaje MQTT al ESP32 para activar el servo correspondiente
         const topic = "monitores/esp32";
         const message = JSON.stringify({ action: `activarServo${numeroServo}` });
         client.publish(topic, message);
     };
-
-
-        const handleMQTTMessage = (topic, message) => {
-            console.log("Mensaje recibido:", message.toString());
-            try {
-                if (message.length > 0) {
-                    let data = JSON.parse(message.toString());
-
-                    if (data && Object.keys(data).length > 0) {
-                        console.log("JSON recibido con datos:", data);
-                        if (data.from === "esp32" && data.to === "WEB") {
-                            // Update the latest data
-                            updateLatestData(data);
-                        }
-                    } else {
-                        console.log("Received JSON with no data or empty object.");
-                    }
-                } else {
-                    console.log("Received an empty message.");
-                }
-            } catch (e) {
-                console.log("Error parsing JSON:", e);
-            }
-        };
         // Manejo de errores en la conexión MQTT
         client.on("error", function (error) {
             console.log("MQTT Error:", error);

@@ -9,8 +9,8 @@
 // Declaración de funciones
 void callback(char *topic, byte *payload, unsigned int length);
 int obtenerDistancia(int triggerPin, int echoPin);
-void controlarServos(Servo &servo, int triggerPin, int echoPin, int &tiempoPluma);
-void levantarPluma(Servo &servo, int &tiempoPluma);
+void controlarServos(Servo &servo, int triggerPin, int echoPin, int tiempoPluma);
+void levantarPluma(Servo &servo, int tiempoPluma);
 void bajarPluma(Servo &servo);
 
 // WiFi
@@ -63,10 +63,12 @@ const int distanciaSensor2EchoPin = 21;
 const int anguloServo1Pin = 5;
 const int anguloServo2Pin = 22;
 
-// Variables para el control de tiempo y configuración de intervalos
+// Tiempo que la pluma debe estar arriba en milisegundos
+int tiempoPluma = 500;  // Puedes ajustar este valor según tus necesidades
+
+// Variables para el manejo del tiempo
 unsigned long tiempoAnterior = 0;
-const unsigned long intervalo = 9000;
-const unsigned long tiempoPlumaAbierta = 10;
+unsigned long intervaloEnvio = 1000;  // Intervalo de envío en milisegundos
 
 void setup() {
   // Inicializar los pines de los sensores y los servomotores
@@ -115,30 +117,30 @@ void setup() {
 }
 
 void loop() {
-  controlarServos(servo1, distanciaSensor1TriggerPin, distanciaSensor1EchoPin, tiempoPlumaAbierta);
-  controlarServos(servo2, distanciaSensor2TriggerPin, distanciaSensor2EchoPin, tiempoPlumaAbierta);
+  unsigned long tiempoActual = millis();
 
-  // Crear un objeto JSON con la información de distancia y servos
-  DynamicJsonDocument doc(1024);
-  doc["distancia1"] = obtenerDistancia(distanciaSensor1TriggerPin, distanciaSensor1EchoPin);
-  doc["distancia2"] = obtenerDistancia(distanciaSensor2TriggerPin, distanciaSensor2EchoPin);
+  if (tiempoActual - tiempoAnterior >= intervaloEnvio) {
+    controlarServos(servo1, distanciaSensor1TriggerPin, distanciaSensor1EchoPin, tiempoPluma);
+    controlarServos(servo2, distanciaSensor2TriggerPin, distanciaSensor2EchoPin, tiempoPluma);
 
-  // Usar la función read() para obtener el ángulo del servo 1
-  int servo1Value = servo1.read();
-  doc["servo1"] = constrain(servo1Value, 0, 90);
+    DynamicJsonDocument doc(1024);
+    doc["distancia1"] = obtenerDistancia(distanciaSensor1TriggerPin, distanciaSensor1EchoPin);
+    doc["distancia2"] = obtenerDistancia(distanciaSensor2TriggerPin, distanciaSensor2EchoPin);
 
-  // Usar la función read() para obtener el ángulo del servo 2
-  int servo2Value = servo2.read();
-  doc["servo2"] = constrain(servo2Value, 0, 90);
+    int servo1Value = servo1.read();
+    doc["servo1"] = constrain(servo1Value, 0, 90);
 
-  // Convertir el objeto JSON en una cadena
-  String jsonString;
-  serializeJson(doc, jsonString);
+    int servo2Value = servo2.read();
+    doc["servo2"] = constrain(servo2Value, 0, 90);
 
-  // Publicar el mensaje JSON en el tema MQTT
-  client.publish(mqttTopic, jsonString.c_str());
+    String jsonString;
+    serializeJson(doc, jsonString);
 
-  // Continúa con el loop del cliente MQTT
+    client.publish(mqttTopic, jsonString.c_str());
+
+    tiempoAnterior = tiempoActual;
+  }
+
   client.loop();
 }
 
@@ -191,29 +193,21 @@ int obtenerDistancia(int triggerPin, int echoPin) {
 
   return pulseIn(echoPin, HIGH) * 0.034 / 2;  // Calcular la distancia en centímetros
 }
-unsigned long tiempoInicioLevantarPluma = 0;
-void controlarServos(Servo &servo, int triggerPin, int echoPin, const int tiempoPluma) {
-  // Leer la distancia del sensor
-  int distancia = obtenerDistancia(triggerPin, echoPin);
 
-  // Levantar o bajar la pluma del servo según la distancia
-  if (distancia < 10) {
-    levantarPluma(servo, tiempoPluma);
-  } else {
-    bajarPluma(servo);
-  }
+void controlarServos(Servo &servo, int triggerPin, int echoPin, int tiempoPluma) {
+    int distancia = obtenerDistancia(triggerPin, echoPin);
+
+    if (distancia < 15) {
+        levantarPluma(servo, tiempoPluma);
+    } else {
+        bajarPluma(servo);
+    }
 }
 
-void levantarPluma(Servo &servo, const int tiempoPluma) {
-  // Solo levanta la pluma si no está ya levantada
+void levantarPluma(Servo &servo, int tiempoPluma) {
   if (servo.read() != 90) {
     servo.write(90);
-    tiempoInicioLevantarPluma = millis();
-  }
-
-  // Si ha pasado el tiempoPluma, baja la pluma
-  if (millis() - tiempoInicioLevantarPluma >= tiempoPluma) {
-    servo.write(0);
+    delay(tiempoPluma);
   }
 }
 

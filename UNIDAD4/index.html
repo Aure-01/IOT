@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,7 +27,7 @@
             padding: 10px;
             border-radius: 10px;
             margin-top: 20px;
-            width:fit-content; 
+            width: fit-content;
             margin-bottom: 20px;
             display: flex;
         }
@@ -47,46 +48,55 @@
             padding: 10px;
             border-radius: 10px;
             margin-top: 20px;
-            width: auto; /* Adjust the width as needed */
+            width: auto;
+            /* Adjust the width as needed */
             margin-bottom: 20px;
             font-size: 18px;
         }
-        #button-container {
-                display:block;
-                justify-content: center;
-                margin-bottom: 20px;
-            }
 
-            button {
-                background-color: #01694a;
-                font-family: "Times New Roman", Times, serif;
-                color: white;
-                padding: 30px 40px;
-                border: none;
-                cursor: pointer;
-                margin: 10px;
-                border-radius: 5px;
-                transition: background-color 0.3s ease;
-                font-size: 18px;
-            }
-            button.off {
-                background-color: #e74c3c;
-                font-family: "Times New Roman", Times, serif;
-            }
+        #button-container {
+            display: block;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #01694a;
+            font-family: "Times New Roman", Times, serif;
+            color: white;
+            padding: 30px 40px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            font-size: 18px;
+        }
+
+        button.off {
+            background-color: #e74c3c;
+            font-family: "Times New Roman", Times, serif;
+        }
     </style>
 </head>
+
 <body>
-    <header><center>
-        <h1>Estacionamiento con MQTT</h1>
-    </center>
+    <header>
+        <center>
+            <h1>Estacionamiento con MQTT</h1>
+        </center>
     </header>
     <main>
         <div id="data-container" class="data-display">
             <div id="button-container">
-                <button disabled>Distancia 1: <a id="distancia1_display">  </a></button>
-                <button disabled>Distancia 2: <a id="distancia2_display">  </a></button>
-                <button disabled>Servo 1: <a id="servo1_display">  </a></button>
-                <button disabled>Servo 2: <a id="servo2_display">  </a></button>
+                <button disabled>Distancia 1: <a id="distancia1_display"> </a></button>
+                <button disabled>Distancia 2: <a id="distancia2_display"> </a></button>
+                <button disabled>Servo 1: <a id="servo1_display"> </a></button>
+                <button disabled>Servo 2: <a id="servo2_display"> </a></button>
+            </div>
+            <div id="action-buttons">
+                <button onclick="activarServo(1)" id="activarServo1">Activar Servo 1</button>
+                <button onclick="activarServo(2)" id="activarServo2">Activar Servo 2</button>
             </div>
         </div>
     </main>
@@ -126,7 +136,7 @@
                     if (data && Object.keys(data).length > 0) {
                         console.log("Received valid JSON with data xd:", data);
                         updateLatestData(data);
-                        } else {
+                    } else {
                         console.log("Received JSON with no data or empty object.");
                     }
                 } else {
@@ -172,6 +182,15 @@
             }
         };
 
+        const activarServo = (numeroServo) => {
+        console.log(`Activando Servo ${numeroServo}`);
+        // Envia un mensaje MQTT al ESP32 para activar el servo correspondiente
+        const topic = "monitores/esp32";
+        const message = JSON.stringify({ action: `activarServo${numeroServo}` });
+        client.publish(topic, message);
+    };
+
+
         const handleMQTTMessage = (topic, message) => {
             console.log("Mensaje recibido:", message.toString());
             try {
@@ -198,6 +217,7 @@
         client.on("error", function (error) {
             console.log("MQTT Error:", error);
         });
-    </script> 
+    </script>
 </body>
+
 </html>

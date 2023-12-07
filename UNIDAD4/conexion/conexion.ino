@@ -64,11 +64,11 @@ const int anguloServo1Pin = 5;
 const int anguloServo2Pin = 22;
 
 // Tiempo que la pluma debe estar arriba en milisegundos
-int tiempoPluma = 500;  // Puedes ajustar este valor según tus necesidades
+int tiempoPluma = 1500;  // Puedes ajustar este valor según tus necesidades
 
 // Variables para el manejo del tiempo
 unsigned long tiempoAnterior = 0;
-unsigned long intervaloEnvio = 1000;  // Intervalo de envío en milisegundos
+unsigned long intervaloEnvio = 500;  // Intervalo de envío en milisegundos
 
 void setup() {
   // Inicializar los pines de los sensores y los servomotores

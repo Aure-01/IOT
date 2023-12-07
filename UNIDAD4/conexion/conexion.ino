@@ -14,8 +14,8 @@ void levantarPluma(Servo &servo, int tiempoPluma);
 void bajarPluma(Servo &servo);
 
 // WiFi
-const char *ssid = "Cuarto de Aure_2.4G";   // Ingresa el nombre de tu WiFi
-const char *password = "2WC456400946"; // Ingresa la contraseña de tu WiFi
+const char *ssid = "W_Aula_WB11";   // Ingresa el nombre de tu WiFi
+const char *password = "itcolima6"; // Ingresa la contraseña de tu WiFi
 
 // MQTT Broker
 const char *mqttServer = "w3a4bbd9.ala.us-east-1.emqxsl.com";

@@ -87,7 +87,7 @@
         </center>
     </header>
     <main>
-        <div id="data-container" class="data-display">
+        <div id="action-buttons" class="data-display">
             <div id="button-container">
                 <button disabled>Distancia 1: <a id="distancia1_display"> </a></button>
                 <button disabled>Distancia 2: <a id="distancia2_display"> </a></button>
@@ -167,8 +167,10 @@
             if (data.servo1 === 89) {
                 servo1Display.style.backgroundColor = '#FF0000'; // Cambia el color a rojo
                 servo1Display.innerText = 'Ocupado';
+                actualizarEstadoBoton(1, false); // Servo Activado
             } else {
                 servo1Display.style.backgroundColor = '#01694a'; // Restablece el color original
+                actualizarEstadoBoton(1, true); // Servo Desactivado
             }
 
             // Servo 2
@@ -177,18 +179,37 @@
             if (data.servo2 === 89) {
                 servo2Display.style.backgroundColor = '#FF0000'; // Cambia el color a rojo
                 servo2Display.innerText = 'Ocupado';
+                actualizarEstadoBoton(2, false); // Servo Activado
             } else {
                 servo2Display.style.backgroundColor = '#01694a'; // Restablece el color original
+                actualizarEstadoBoton(2, true); // Servo Desactivado
             }
         };
 
-            const activarServo = (numeroServo) => {
-        console.log(`Activando Servo ${numeroServo}`);
-        // Envia un mensaje MQTT al ESP32 para activar el servo correspondiente
-        const topic = "monitores/esp32";
-        const message = JSON.stringify({ action: `activarServo${numeroServo}` });
-        client.publish(topic, message);
-    };
+        const actualizarEstadoBoton = (numeroServo, desactivado) => {
+            const servoButton = document.getElementById(`activarServo${numeroServo}`);
+            if (desactivado) {
+                servoButton.innerText = "Activar Servo " + numeroServo;
+                servoButton.classList.remove("off");
+            } else {
+                servoButton.innerText = "Servo Activado";
+                servoButton.classList.add("off");
+            }
+        };
+
+
+        const activarServo = (numeroServo) => {
+            console.log(`Activando Servo ${numeroServo}`);
+            // Envia un mensaje MQTT al ESP32 para activar el servo correspondiente
+            const topic = "monitores/esp32";
+            const message = JSON.stringify({ action: `activarServo${numeroServo}` });
+            client.publish(topic, message);
+
+            // Actualiza el texto y estilo del botón correspondiente
+            const servoButton = document.getElementById(`activarServo${numeroServo}`);
+            servoButton.innerText = "Servo Activado";
+            servoButton.classList.add("off");
+        };
         // Manejo de errores en la conexión MQTT
         client.on("error", function (error) {
             console.log("MQTT Error:", error);

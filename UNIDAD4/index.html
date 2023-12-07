@@ -97,6 +97,7 @@
             <div id="action-buttons">
                 <button onclick="activarServo(1)" id="activarServo1">Activar Servo 1</button>
                 <button onclick="activarServo(2)" id="activarServo2">Activar Servo 2</button>
+                <button disabled>Total de Vehículos: <a id="totalVehiculos_value">0</a></button>
             </div>
         </div>
     </main>
@@ -152,6 +153,7 @@
             console.log("Distancia 2:", data.distancia2);
             console.log("Servo 1:", data.servo1);
             console.log("Servo 2:", data.servo2);
+            console.log("Contador: ", data.contador);
             // Verifica si la estructura del objeto data es correcta
             console.log("Received data:", JSON.stringify(data));
 
@@ -184,6 +186,8 @@
                 servo2Display.style.backgroundColor = '#01694a'; // Restablece el color original
                 actualizarEstadoBoton(2, true); // Servo Desactivado
             }
+            // Total de Vehículos
+            document.getElementById("totalVehiculos_value").innerText = data.contador !== undefined ? data.contador : 'No data';
         };
 
         const actualizarEstadoBoton = (numeroServo, desactivado) => {

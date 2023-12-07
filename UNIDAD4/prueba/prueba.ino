@@ -10,11 +10,11 @@
 void callback(char *topic, byte *payload, unsigned int length);
 int obtenerDistancia(int triggerPin, int echoPin);
 void controlarServos(Servo &servo, int triggerPin, int echoPin, int tiempoPluma);
-void levantarPluma(Servo &servo, int tiempoPluma);
+void levantarPluma(int servo_option , int tiempoPluma);
 void bajarPluma(Servo &servo);
 
 // WiFi
-const char *ssid = "W_Aula_WB11";   // Ingresa el nombre de tu WiFi
+const char *ssid = "A_Escolares_Jefatura";   // Ingresa el nombre de tu WiFi
 const char *password = "itcolima6"; // Ingresa la contraseña de tu WiFi
 
 // MQTT Broker
@@ -70,13 +70,9 @@ int tiempoPluma = 1500;  // Puedes ajustar este valor según tus necesidades
 unsigned long tiempoAnterior = 0;
 unsigned long intervaloEnvio = 500;  // Intervalo de envío en milisegundos
 
-// Contador de vehículos
-int totalVehiculos = 0;
-int capacidadMaxima = 20;  // Capacidad máxima permitida
+// Contador para vehiculos
+int contador = 0;
 
-// Estados de activación de los servos
-bool servo1Activado = false;
-bool servo2Activado = false;
 
 void setup() {
   // Inicializar los pines de los sensores y los servomotores
@@ -128,8 +124,8 @@ void loop() {
   unsigned long tiempoActual = millis();
 
   if (tiempoActual - tiempoAnterior >= intervaloEnvio) {
-    controlarServos(servo1, distanciaSensor1TriggerPin, distanciaSensor1EchoPin, tiempoPluma);
-    controlarServos(servo2, distanciaSensor2TriggerPin, distanciaSensor2EchoPin, tiempoPluma);
+    controlarServos(1, distanciaSensor1TriggerPin, distanciaSensor1EchoPin, tiempoPluma);
+    controlarServos(2, distanciaSensor2TriggerPin, distanciaSensor2EchoPin, tiempoPluma);
 
     DynamicJsonDocument doc(1024);
     doc["distancia1"] = obtenerDistancia(distanciaSensor1TriggerPin, distanciaSensor1EchoPin);
@@ -141,7 +137,7 @@ void loop() {
     int servo2Value = servo2.read();
     doc["servo2"] = constrain(servo2Value, 0, 90);
 
-    doc["totalVehiculos"] = totalVehiculos;  // Agrega el estado de totalVehiculos al JSON
+    doc["contador"] = contador;  // Agrega el estado de contador al JSON
 
     String jsonString;
     serializeJson(doc, jsonString);
@@ -151,38 +147,7 @@ void loop() {
     tiempoAnterior = tiempoActual;
   }
 
-  // Verifica y maneja el estado de totalVehiculos antes de intentar activar el servo1
-  if (totalVehiculos < capacidadMaxima) {
-    client.loop();  // Asegura la recepción de mensajes MQTT
-
-    // Intenta activar el servo1 solo si no ha alcanzado la capacidad máxima
-    if (servo1Activado == false) {
-      levantarPluma(servo1, tiempoPluma);  // Activa físicamente el servo1
-
-      // Incrementa el contador solo si se activa el servo1
-      totalVehiculos++;
-      servo1Activado = true;  // Marca el servo1 como activado
-    }
-  } else {
-    Serial.println("Capacidad máxima alcanzada. No se permite activar el servo1.");
-  }
-
-  // Maneja la lógica para activar el servo2 y decrementar el contador
-  if (totalVehiculos > 0) {
-    if (servo2Activado == false) {
-      levantarPluma(servo2, tiempoPluma);  // Activa físicamente el servo2
-
-      // Decrementa el contador solo si se activa el servo2
-      totalVehiculos--;
-      servo2Activado = true;  // Marca el servo2 como activado
-    }
-  } else {
-    Serial.println("No hay vehículos para activar el servo2.");
-  }
-
-  // ... (código existente)
-
-  delay(10);  // Breve retardo para estabilidad
+  client.loop();
 }
 
 
@@ -207,24 +172,19 @@ void callback(char *topic, byte *payload, unsigned int length) {
         String action = doc["action"];
         if (action.equals("activarServo1")) {
             // Activa físicamente el servo1
-            levantarPluma(servo1, tiempoPluma);
-            // Incrementa el contador
-            totalVehiculos++;
+            levantarPluma(1, tiempoPluma);
         } else if (action.equals("activarServo2")) {
             // Activa físicamente el servo2
-            levantarPluma(servo2, tiempoPluma);
-            // Decrementa el contador si es mayor que cero
-            if (totalVehiculos > 0) {
-                totalVehiculos--;
-            }
+            levantarPluma(2, tiempoPluma);
         }
     } else {
-        // Procesa otros datos del mensaje (distancia, servo1, servo2)
+        // Procesa otros datos del mensaje (distancia, servo1, servo2, contador)
         if (doc.containsKey("distancia1") && doc.containsKey("distancia2") && doc.containsKey("servo1") && doc.containsKey("servo2")) {
             int distancia1 = doc["distancia1"];
             int distancia2 = doc["distancia2"];
             int servo1Value = doc["servo1"];
             int servo2Value = doc["servo2"];
+            int contador = doc["contador"];
 
             // Imprime la información recibida
             Serial.print("Distancia1: ");
@@ -235,7 +195,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
             Serial.println(servo1Value);
             Serial.print("Servo2: ");
             Serial.println(servo2Value);
-
+            Serial.print("Contador: ");
+            Serial.println(contador);
             // Puedes hacer algo con la distancia y el valor del servo recibidos
             // Por ejemplo, actualizar variables globales, realizar acciones, etc.
         }
@@ -253,23 +214,47 @@ int obtenerDistancia(int triggerPin, int echoPin) {
   return pulseIn(echoPin, HIGH) * 0.034 / 2;  // Calcular la distancia en centímetros
 }
 
-void controlarServos(Servo &servo, int triggerPin, int echoPin, int tiempoPluma) {
+void controlarServos(int servo_option, int triggerPin, int echoPin, int tiempoPluma) {
     int distancia = obtenerDistancia(triggerPin, echoPin);
 
     if (distancia < 15) {
-        levantarPluma(servo, tiempoPluma);
-        // Contador de vehículos
-        totalVehiculos++;
+        if (servo_option == 1)
+        {
+            levantarPluma(1, tiempoPluma);
+        }else if (servo_option == 2)
+        {
+            levantarPluma(2, tiempoPluma);
+        }
     } else {
-        bajarPluma(servo);
+        bajarPluma(servo1);
+        bajarPluma(servo2);
     }
 }
 
-void levantarPluma(Servo &servo, int tiempoPluma) {
-  if (servo.read() != 90) {
-    servo.write(90);
-    delay(tiempoPluma);
-  }
+void levantarPluma(int servo_option, int tiempoPluma) {
+    if(servo_option == 1){
+        if (contador < 20)
+        {
+            servo1.write(90);
+            delay(tiempoPluma);
+            contador++;
+        }else{
+            return;
+        } 
+    }
+    else if(servo_option == 2){
+            if (contador > 0)
+        {
+            servo2.write(90);
+            delay(tiempoPluma);
+            contador--;
+        }else{
+            return;
+        } 
+    }else {
+        return;
+    }
+
 }
 
 void bajarPluma(Servo &servo) {
